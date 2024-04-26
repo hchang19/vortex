@@ -18,9 +18,9 @@ set -e
 
 REPOSITORY=https://github.com/vortexgpgpu/vortex-toolchain-prebuilt/raw/master
 TOOLDIR=${TOOLDIR:=/opt}
-OSDIR=${OSDIR:=ubuntu/bionic}
+OSDIR=${OSDIR:=ubuntu/focal}
 
-OS="${OS:=ubuntu/bionic}"
+OS="${OS:=ubuntu/focal}"
 
 riscv()
 {

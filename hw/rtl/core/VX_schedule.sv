@@ -366,7 +366,12 @@ module VX_schedule import VX_gpu_pkg::*; #(
     assign sched_csr_if.cycles = cycles;
     assign sched_csr_if.active_warps = active_warps;
     assign sched_csr_if.thread_masks = thread_masks;
-          
+    
+`ifdef PERF_ENABLE
+    assign perf_schedule_if.active_warps_n = { {(`NUM_WARPS-$clog2(`NUM_WARPS + 1)){1'b0}}, $countones(active_warps) }; 
+    assign perf_schedule_if.stalled_warps_n = { {(`NUM_WARPS-$clog2(`NUM_WARPS + 1)){1'b0}}, $countones(active_warps) };;
+`endif
+
    // timeout handling
     reg [31:0] timeout_ctr;
     reg timeout_enable;
@@ -405,7 +410,7 @@ module VX_schedule import VX_gpu_pkg::*; #(
     end
 
     assign perf_schedule_if.sched_idles = perf_sched_idles;
-    assign perf_schedule_if.sched_stalls = perf_sched_stalls;    
+    assign perf_schedule_if.sched_stalls = perf_sched_stalls;   
 `endif
 
 endmodule
