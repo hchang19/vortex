@@ -224,8 +224,11 @@ import VX_fpu_pkg::*;
                         `VX_CSR_MPM_LOAD_LT_H       : read_data_ro_r = 32'(pipeline_perf_if.load_latency[`PERF_CTR_BITS-1:32]);
 
                         // PERF: warp efficiency
-                        `VC_CSR_MPM_ACT_WARP_N      : read_data_ro_r = 32'(pipeline_perf_if.active_warps_n[`NUM_WARPS-1:0]);
-                        `VC_CSR_MPM_STL_WARP_N      : read_data_ro_r = 32'(pipeline_perf_if.stalled_warps_n[`NUM_WARPS-1:0]);
+                        `VC_CSR_MPM_ACT_CTR      : read_data_ro_r = pipeline_perf_if.active_warps_ctr[31:0];
+                        `VC_CSR_MPM_ACT_CTR_H    : read_data_ro_r = 32'(pipeline_perf_if.active_warps_ctr[`PERF_CTR_BITS-1:32]);
+                        `VC_CSR_MPM_STL_CTR      : read_data_ro_r = pipeline_perf_if.stalled_warps_ctr[31:0];
+                        `VC_CSR_MPM_STL_CTR_H    : read_data_ro_r = 32'(pipeline_perf_if.stalled_warps_ctr[`PERF_CTR_BITS-1:32]);
+
                         //       
                         default:;
                         endcase

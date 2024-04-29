@@ -216,8 +216,8 @@ extern int vx_dump_perf(vx_device_h hdevice, FILE* stream) {
   uint64_t ifetch_lat = 0;
   uint64_t load_lat   = 0;
   // PERF: warp efficiency
-  uint64_t active_warps_n = 1; // init to 1 to avoid divisiable by 0 for warp efficiency
-  uint64_t stalled_warps_n = 0;
+  uint64_t active_warps_ctr = 0;
+  uint64_t stalled_warps_ctr = 0;
   // PERF: l2cache 
   uint64_t l2cache_reads = 0;
   uint64_t l2cache_writes = 0;
@@ -372,12 +372,13 @@ extern int vx_dump_perf(vx_device_h hdevice, FILE* stream) {
 
       // PERF: warp efficiency
       {
-        uint64_t active_warps_n_per_core = get_csr_64(staging_buf.data(), VC_CSR_MPM_ACT_WARP_N);
-        uint64_t stalled_warps_n_per_core = get_csr_64(staging_buf.data(), VC_CSR_MPM_STL_WARP_N);
-        fprintf(stream, "PERF: core%d: active_warps=%ld stalled_warp=%ld\n", core_id, active_warps_n_per_core, stalled_warps_n_per_core);
+        uint64_t active_warps_ctr_per_core = get_csr_64(staging_buf.data(), VC_CSR_MPM_ACT_CTR);
+        uint64_t stalled_warps_ctr_per_core = get_csr_64(staging_buf.data(), VC_CSR_MPM_STL_CTR);
 
-        active_warps_n += active_warps_n_per_core;
-        stalled_warps_n += stalled_warps_n_per_core;
+        fprintf(stream, "PERF core%d: active_warps=%ld stalled_warp=%ld\n", core_id, active_warps_ctr_per_core, stalled_warps_ctr_per_core);
+
+        active_warps_ctr += active_warps_ctr_per_core;
+        stalled_warps_ctr += stalled_warps_ctr_per_core;
 
       }
     } break;
@@ -474,7 +475,7 @@ extern int vx_dump_perf(vx_device_h hdevice, FILE* stream) {
     int load_avg_lat = (int)(double(load_lat) / double(loads));
     uint64_t scrb_total = scrb_alu + scrb_fpu + scrb_lsu + scrb_sfu;
     uint64_t sfu_total = scrb_wctl + scrb_csrs;
-    double warp_efficiency = double(active_warps_n - stalled_warps_n) / double(active_warps_n) * 100.0;
+    double warp_efficiency = double(active_warps_ctr - stalled_warps_ctr) / double(active_warps_ctr) * 100.0;
     fprintf(stream, "PERF: scheduler idle=%ld (%d%%)\n", sched_idles, sched_idles_percent);
     fprintf(stream, "PERF: scheduler stalls=%ld (%d%%)\n", sched_stalls, sched_stalls_percent);
     fprintf(stream, "PERF: ibuffer stalls=%ld (%d%%)\n", ibuffer_stalls, ibuffer_percent);

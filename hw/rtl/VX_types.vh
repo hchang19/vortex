@@ -103,8 +103,11 @@
 `define VX_CSR_MPM_SCRB_CSRS            12'hB11
 `define VX_CSR_MPM_SCRB_CSRS_H          12'hB91
 // PERF: warp efficiency
-`define VC_CSR_MPM_ACT_WARP_N           12'hB12
-`define VC_CSR_MPM_STL_WARP_N           12'hB13
+`define VC_CSR_MPM_ACT_CTR              12'hB12
+`define VC_CSR_MPM_ACT_CTR_H            12'hB92
+`define VC_CSR_MPM_STL_CTR              12'hB13
+`define VC_CSR_MPM_STL_CTR_H            12'hB93
+
 
 // Machine Performance-monitoring memory counters
 // PERF: icache

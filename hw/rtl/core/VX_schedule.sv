@@ -161,6 +161,7 @@ module VX_schedule import VX_gpu_pkg::*; #(
             end
             stalled_warps_n[warp_ctl_if.wid] = 0; // unlock warp
         end
+
     `ifdef GBAR_ENABLE
         if (gbar_bus_if.rsp_valid && (gbar_req_id == gbar_bus_if.rsp_id)) begin
             barrier_masks_n[gbar_bus_if.rsp_id] = '0;
@@ -366,11 +367,6 @@ module VX_schedule import VX_gpu_pkg::*; #(
     assign sched_csr_if.cycles = cycles;
     assign sched_csr_if.active_warps = active_warps;
     assign sched_csr_if.thread_masks = thread_masks;
-    
-`ifdef PERF_ENABLE
-    assign perf_schedule_if.active_warps_n = { {(`NUM_WARPS-$clog2(`NUM_WARPS + 1)){1'b0}}, $countones(active_warps) }; 
-    assign perf_schedule_if.stalled_warps_n = { {(`NUM_WARPS-$clog2(`NUM_WARPS + 1)){1'b0}}, $countones(active_warps) };;
-`endif
 
    // timeout handling
     reg [31:0] timeout_ctr;
@@ -395,6 +391,8 @@ module VX_schedule import VX_gpu_pkg::*; #(
 `ifdef PERF_ENABLE    
     reg [`PERF_CTR_BITS-1:0] perf_sched_idles;
     reg [`PERF_CTR_BITS-1:0] perf_sched_stalls;
+    reg [`PERF_CTR_BITS-1:0] active_warps_ctr;
+    reg [`PERF_CTR_BITS-1:0] stalled_warps_ctr;
 
     wire schedule_idle = ~schedule_valid;
     wire schedule_stall = schedule_if.valid && ~schedule_if.ready;
@@ -402,15 +400,22 @@ module VX_schedule import VX_gpu_pkg::*; #(
     always @(posedge clk) begin
         if (reset) begin
             perf_sched_idles  <= '0;
-            perf_sched_stalls <= '0;            
+            perf_sched_stalls <= '0;
+            active_warps_ctr <= '0;
+            stalled_warps_ctr <= '0;
         end else begin
             perf_sched_idles  <= perf_sched_idles + `PERF_CTR_BITS'(schedule_idle);
             perf_sched_stalls <= perf_sched_stalls + `PERF_CTR_BITS'(schedule_stall);
+            active_warps_ctr <= active_warps_ctr + `PERF_CTR_BITS'($countones(active_warps));
+            stalled_warps_ctr <= stalled_warps_ctr + `PERF_CTR_BITS'($countones(stalled_warps));
         end
     end
 
     assign perf_schedule_if.sched_idles = perf_sched_idles;
-    assign perf_schedule_if.sched_stalls = perf_sched_stalls;   
+    assign perf_schedule_if.sched_stalls = perf_sched_stalls;
+    assign perf_schedule_if.active_warps_ctr = active_warps_ctr;
+    assign perf_schedule_if.stalled_warps_ctr = stalled_warps_ctr;
+
 `endif
 
 endmodule
