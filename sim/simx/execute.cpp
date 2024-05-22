@@ -79,7 +79,6 @@ void Emulator::execute(const Instr &instr, uint32_t wid, instr_trace_t *trace) {
   auto rsrc1  = instr.getRSrc(1);
   auto rsrc2  = instr.getRSrc(2);
   auto immsrc = sext((Word)instr.getImm(), 32);
-
   auto num_threads = arch_.num_threads();
 
   uint32_t thread_start = 0;
@@ -1413,7 +1412,7 @@ void Emulator::execute(const Instr &instr, uint32_t wid, instr_trace_t *trace) {
           int8_t  a1 = (a >> 8) & 0xff;
           int8_t  a2 = (a >> 16) & 0xff;
           int8_t  a3 = (a >> 24) & 0xff;
-
+          
           int8_t  b0 = (b >> 0) & 0xff;
           int8_t  b1 = (b >> 8) & 0xff;
           int8_t  b2 = (b >> 16) & 0xff;

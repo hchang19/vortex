@@ -236,9 +236,9 @@ inline void vx_fence() {
 // DOT8
 inline int vx_dot8(int a, int b) {
     // TODO: DONE
-    size_t ret;
-    asm volatile (".insn r %1, 7, 0, %0, %2, %3" : "=r"(ret) : "i"(RISCV_CUSTOM0), "r"(a), "r"(b));
-    
+    int ret;
+    asm volatile (".insn r %1, 0, 1, %0, %2, %3" : "=r"(ret) : "i"(RISCV_CUSTOM0), "r"(a), "r"(b));
+    return ret;
 }
 
 #ifdef __cplusplus

@@ -103,7 +103,6 @@ int main(int argc, char *argv[]) {
   uint32_t buf_size = size * sizeof(int);
 
   std::cout << "size: " << size << std::endl;
-
   kernel_arg.num_tasks = size;
 
   // allocate device memory
