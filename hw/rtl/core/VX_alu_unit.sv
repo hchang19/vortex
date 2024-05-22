@@ -33,7 +33,7 @@ module VX_alu_unit #(
     localparam PID_BITS     = `CLOG2(`NUM_THREADS / NUM_LANES);
     localparam PID_WIDTH    = `UP(PID_BITS);
     localparam RSP_ARB_DATAW= `UUID_WIDTH + `NW_WIDTH + NUM_LANES + `XLEN + `NR_BITS + 1 + NUM_LANES * `XLEN + PID_WIDTH + 1 + 1;
-    localparam RSP_ARB_SIZE = 1 + `EXT_M_ENABLED;
+    localparam RSP_ARB_SIZE = 2 + `EXT_M_ENABLED;
     localparam PARTIAL_BW   = (BLOCK_SIZE != `ISSUE_WIDTH) || (NUM_LANES != `NUM_THREADS);
 
     VX_execute_if #(
@@ -60,6 +60,7 @@ module VX_alu_unit #(
         `RESET_RELAY (block_reset, reset);
 
         wire is_muldiv_op = `EXT_M_ENABLED && `INST_ALU_IS_M(per_block_execute_if[block_idx].data.op_mod);
+        wire is_dot8_op = (per_block_execute_if[block_idx].data.op_type == `INST_ALU_DOT8);
 
         VX_execute_if #(
             .NUM_LANES (NUM_LANES)
@@ -69,7 +70,7 @@ module VX_alu_unit #(
             .NUM_LANES (NUM_LANES)
         ) int_commit_if();
 
-        assign int_execute_if.valid = per_block_execute_if[block_idx].valid && ~is_muldiv_op;
+        assign int_execute_if.valid = per_block_execute_if[block_idx].valid && (~is_muldiv_op && ~is_dot8_op);
         assign int_execute_if.data = per_block_execute_if[block_idx].data;
 
         `RESET_RELAY (int_reset, block_reset);
@@ -85,6 +86,30 @@ module VX_alu_unit #(
             .branch_ctl_if (branch_ctl_if[block_idx]),
             .commit_if  (int_commit_if)
         );
+
+        VX_execute_if #(
+            .NUM_LANES (NUM_LANES)
+        ) dot8_execute_if();
+
+        VX_commit_if #(
+            .NUM_LANES (NUM_LANES)
+        ) dot8_commit_if();
+
+        assign dot8_execute_if.valid = per_block_execute_if[block_idx].valid && (~is_muldiv_op && is_dot8_op);
+        assign dot8_execute_if.data = per_block_execute_if[block_idx].data;
+
+        `RESET_RELAY (dot8_reset, block_reset);
+
+         VX_alu_dot8 #(
+            .CORE_ID   (CORE_ID),
+            .NUM_LANES (NUM_LANES)
+         ) alu_dot8 (
+            .clk        (clk),
+            .reset      (dot8_reset),
+            .execute_if (dot8_execute_if),
+            .commit_if  (dot8_commit_if)
+        );
+
 
     `ifdef EXT_M_ENABLE
 
@@ -117,7 +142,7 @@ module VX_alu_unit #(
         `ifdef EXT_M_ENABLE
             is_muldiv_op ? mdv_execute_if.ready :
         `endif
-            int_execute_if.ready;
+            is_dot8_op ? dot8_execute_if.ready : int_execute_if.ready;
 
         // send response
 
@@ -132,18 +157,21 @@ module VX_alu_unit #(
             `ifdef EXT_M_ENABLE
                 mdv_commit_if.valid,
             `endif
+                dot8_commit_if.valid,
                 int_commit_if.valid
             }),
             .ready_in  ({
             `ifdef EXT_M_ENABLE
                 mdv_commit_if.ready,
             `endif
+                dot8_commit_if.ready,
                 int_commit_if.ready
             }),
             .data_in   ({
             `ifdef EXT_M_ENABLE
                 mdv_commit_if.data,
             `endif
+                dot8_commit_if.data,
                 int_commit_if.data
             }),
             .data_out  (per_block_commit_if[block_idx].data),

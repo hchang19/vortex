@@ -135,7 +135,7 @@
 `define INST_ALU_OR          4'b1101
 `define INST_ALU_XOR         4'b1110
 `define INST_ALU_SLL         4'b1111
-`define INST_ALU_OTHER       4'b0111
+`define INST_ALU_DOT8        4'b0001
 `define INST_ALU_BITS        4
 `define INST_ALU_CLASS(op)   op[3:2]
 `define INST_ALU_SIGNED(op)  op[0]

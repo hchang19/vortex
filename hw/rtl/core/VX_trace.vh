@@ -125,6 +125,7 @@ task trace_ex_op(input int level,
                         `INST_ALU_XOR:   `TRACE(level, ("XOR"));
                         `INST_ALU_OR:    `TRACE(level, ("OR"));
                         `INST_ALU_AND:   `TRACE(level, ("AND"));
+                        `INST_ALU_DOT8:  `TRACE(level, ("DOT8"));
                         default:         `TRACE(level, ("?"));
                     endcase
                 end
