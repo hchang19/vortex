@@ -392,6 +392,12 @@ static const char* op_string(const Instr &instr) {
       default:
         std::abort();
       }
+    case 1:
+      switch (func3) {
+      case 0: return "DOT8";
+      default:
+        std::abort();
+      }
     default:
       std::abort();
     }
@@ -524,6 +530,18 @@ std::shared_ptr<Instr> Emulator::decode(uint32_t code) const {
           instr->setDestReg(rd, RegType::Integer);
           instr->addSrcReg(rs1, RegType::Integer);
           instr->addSrcReg(rs2, RegType::None);
+          break;
+        default:
+          std::abort();
+        }
+        break;
+      case 1:
+        switch (func3) {
+        case 0: // DOT8
+          // TODO: DONE
+          instr->setDestReg(rd, RegType::Integer);
+          instr->addSrcReg(rs1, RegType::Integer);
+          instr->addSrcReg(rs2, RegType::Integer);
           break;
         default:
           std::abort();
